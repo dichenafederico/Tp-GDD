@@ -258,6 +258,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion (descripcion) valu
 	('Pasaje')
 GO	
 
+SELECT * FROM gd_esquema.Maestra
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad (ciudad_nombre) --ERROR
 	SELECT DISTINCT RUTA_AEREA_CIU_ORIG --No lo está asignando bien a ciudad_nombre, por eso dice que no tiene que ser null. Capaz usar alguna tabla auxiliar?
@@ -279,14 +280,13 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea (aerolinea_razon_social
 GO
 
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion (avion_modelo,avion_identificador,id_aerolinea) --ERROR
-	SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR -- Y cómo sabemos a qué aerolinea pertenece?
-	FROM gd_esquema.Maestra
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion (avion_modelo,avion_identificador,id_aerolinea) --FUNCIONA
+	SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR, 
+		(SELECT id_aerolinea FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Aerolinea a WHERE a.aerolinea_razon_social = m.EMPRESA_RAZON_SOCIAL)
+	FROM gd_esquema.Maestra m
 	WHERE AVION_MODELO IS NOT NULL AND AVION_IDENTIFICADOR IS NOT NULL
 GO
 
-SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR
-	FROM gd_esquema.Maestra
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo (vuelo_codigo,vuelo_fecha_salida,vuelo_fecha_llegada,id_avion,id_ruta_aerea) --0 ROWS AFFECTED
 	SELECT DISTINCT VUELO_CODIGO,VUELO_FECHA_SALUDA,VUELO_FECHA_LLEGADA,AVION_IDENTIFICADOR,r.ruta_aerea_codigo
