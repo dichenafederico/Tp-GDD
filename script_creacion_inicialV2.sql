@@ -12,6 +12,18 @@ GO
 --Ejecución de stored procedures anteriores
 --Drop de tablas reales auxiliares. Deben quedar solo las tablas del DER
 
+
+
+
+-------------------------------------------------------------------------------------------------
+-----------------------------------CREACIÓN SCHEMA-----------------------------------------------
+-------------------------------------------------------------------------------------------------
+
+GO
+	CREATE SCHEMA [SELECT_BEST_TEAM_FROM_CUARENTENA] --Buscar cuál es el usuario correcto con el que crear el schema
+GO
+
+
 -------------------------------------------------------------------------------------------------
 -----------------------------------DROP DE TABLES------------------------------------------------
 -------------------------------------------------------------------------------------------------
@@ -41,14 +53,7 @@ IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad', 'U') IS NOT NULL DROP 
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Tipo_Operacion];
 
 
--------------------------------------------------------------------------------------------------
------------------------------------CREACIÓN SCHEMA-----------------------------------------------
--------------------------------------------------------------------------------------------------
 
-GO
-IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SELECT_BEST_TEAM_FROM_CUARENTENA')
-	CREATE SCHEMA [SELECT_BEST_TEAM_FROM_CUARENTENA] --Buscar cuál es el usuario correcto con el que crear el schema
-GO
 
 -------------------------------------------------------------------------------------------------
 -----------------------------------CREACIÓN DE TABLAS--------------------------------------------
@@ -248,89 +253,102 @@ GO
 -------------------Migración de los datos---------------------
 --------------------------------------------------------------
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion (descripcion) values
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion (descripcion) values --FUNCIONA
 	('Estadia'),
 	('Pasaje')
 GO	
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad (ciudad_nombre) 
-	SELECT DISTINCT RUTA_AEREA_CIU_ORIG 
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad (ciudad_nombre) --ERROR
+	SELECT DISTINCT RUTA_AEREA_CIU_ORIG --No lo está asignando bien a ciudad_nombre, por eso dice que no tiene que ser null. Capaz usar alguna tabla auxiliar?
 	FROM gd_esquema.Maestra 
 GO	
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ruta_Aerea (ruta_aerea_codigo,ruta_aerea_ciu_orig,ruta_aerea_ciu_dest) 
-	SELECT DISTINCT RUTA_AEREA_CODIGO,RUTA_AEREA_CIU_ORIG,RUTA_AEREA_CIU_DEST
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ruta_Aerea (ruta_aerea_codigo,ruta_aerea_ciu_orig,ruta_aerea_ciu_dest) --ERROR (volver a probar una vez corregido Ciudad)
+	SELECT DISTINCT RUTA_AEREA_CODIGO,
+		(SELECT id_ciudad FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Ciudad WHERE ruta_aerea_ciu_orig = id_ciudad),
+		(SELECT id_ciudad FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Ciudad WHERE ruta_aerea_ciu_dest = id_ciudad)
 	FROM gd_esquema.Maestra
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea (aerolinea_razon_social) 
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea (aerolinea_razon_social) --FUNCIONA
 	SELECT DISTINCT EMPRESA_RAZON_SOCIAL
-	FROM gd_esquema.Maestra Where HOTEL_CALLE = null
+	FROM gd_esquema.Maestra Where HOTEL_CALLE IS NULL
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion (avion_modelo,avion_identificador,id_aerolinea) 
-	SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion (avion_modelo,avion_identificador,id_aerolinea) --ERROR
+	SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR -- Y cómo sabemos a qué aerolinea pertenece?
 	FROM gd_esquema.Maestra
+	WHERE AVION_MODELO IS NOT NULL AND AVION_IDENTIFICADOR IS NOT NULL
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo (vuelo_codigo,vuelo_fecha_salida,vuelo_fecha_llegada,id_avion,id_ruta_aerea) 
+SELECT DISTINCT AVION_MODELO,AVION_IDENTIFICADOR
+	FROM gd_esquema.Maestra
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo (vuelo_codigo,vuelo_fecha_salida,vuelo_fecha_llegada,id_avion,id_ruta_aerea) --0 ROWS AFFECTED
 	SELECT DISTINCT VUELO_CODIGO,VUELO_FECHA_SALUDA,VUELO_FECHA_LLEGADA,AVION_IDENTIFICADOR,r.ruta_aerea_codigo
 	FROM gd_esquema.Maestra m
 	 join [SELECT_BEST_TEAM_FROM_CUARENTENA].Ruta_Aerea r
 	 on r.ruta_aerea_codigo = m.RUTA_AEREA_CODIGO 
-	 where m.RUTA_AEREA_CODIGO != null
+	 where m.RUTA_AEREA_CODIGO IS NOT NULL
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca (butaca_numero,butaca_tipo) 
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca (butaca_numero,butaca_tipo) --FUNCIONA
 	SELECT DISTINCT BUTACA_NUMERO,BUTACA_TIPO
 	FROM gd_esquema.Maestra
+	WHERE BUTACA_NUMERO IS NOT NULL AND BUTACA_TIPO IS NOT NULL
+	ORDER BY BUTACA_NUMERO
 GO
 
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje (pasaje_codigo,pasaje_costo,pasaje_precio,pasaje_fecha_compra,id_avion,id_butaca) 
-	SELECT DISTINCT PASAJE_CODIGO,PASAJE_COSTO,PASAJE_PRECIO,PASAJE_FECHA_COMPRA,VUELO_CODIGO
+	SELECT DISTINCT PASAJE_CODIGO,PASAJE_COSTO,PASAJE_PRECIO,PASAJE_FECHA_COMPRA,VUELO_CODIGO --ERROR
 	FROM gd_esquema.Maestra
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca_Avion (id_avion) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca_Avion (id_avion) --ERROR
 	SELECT DISTINCT BUTACA_NUMERO,AVION_IDENTIFICADOR
 	FROM gd_esquema.Maestra
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Sucursal (sucursal_dir,sucursal_mail,sucursal_telefono) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Sucursal (sucursal_dir,sucursal_mail,sucursal_telefono)  --ERROR
 	SELECT DISTINCT SUCURSAL_DIR,SUCURSAL_MAIL,SUCURSAL_TELEFONO
 	FROM gd_esquema.Maestra
 GO
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Cliente (cliente_apellido,cliente_nombre,cliente_dni,cliente_fecha_nac,cliente_mail,cliente_telefono) 
-	SELECT DISTINCT CLIENTE_APELLIDO,CLIENTE_NOMBRE,CLIENTE_DNI,CLIENTE_FECHA_NAC,CLIENTE_MAIL,CLIENTE_TELEFONO
+	SELECT DISTINCT CLIENTE_APELLIDO,CLIENTE_NOMBRE,CLIENTE_DNI,CLIENTE_FECHA_NAC,CLIENTE_MAIL,CLIENTE_TELEFONO --ERROR
 	FROM gd_esquema.Maestra
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel (hotel_calle,hotel_nro_calle,hotel_razon_social) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel (hotel_calle,hotel_nro_calle,hotel_razon_social) --0 ROWS AFFECTED
 	SELECT DISTINCT HOTEL_CALLE,HOTEL_NRO_CALLE, EMPRESA_RAZON_SOCIAL
 	FROM gd_esquema.Maestra Where HOTEL_CALLE != null
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion (tipo_habitacion_codigo,tipo_habitacion_desc) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion (tipo_habitacion_codigo,tipo_habitacion_desc) --ERROR
 	SELECT DISTINCT TIPO_HABITACION_CODIGO,TIPO_HABITACION_DESC
 	FROM gd_esquema.Maestra 
 GO
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion (habitacion_numero,habitacion_piso,habitacion_frente,habitacion_costo,habitacion_precio,id_hotel,id_tipo_habitacion) 
-	SELECT DISTINCT HABITACION_NUMERO,HABITACION_PISO,HABITACION_FRENTE,HABITACION_COSTO,HABITACION_PRECIO, 
+	SELECT DISTINCT HABITACION_NUMERO,HABITACION_PISO,HABITACION_FRENTE,HABITACION_COSTO,HABITACION_PRECIO, --ERROR
 	(SELECT id_hotel from [SELECT_BEST_TEAM_FROM_CUARENTENA].hotel h
 	 where hotel_razon_social = m.EMPRESA_RAZON_SOCIAL AND HOTEL_CALLE != null ),
 	 TIPO_HABITACION_CODIGO
 	FROM gd_esquema.Maestra m
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia (estadia_fecha,estadia_checkin,estadia_checkout,estadia_cantidad_noches,estadia_codigo) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia (estadia_fecha,estadia_checkin,estadia_checkout,estadia_cantidad_noches,estadia_codigo) --ERROR
 	SELECT DISTINCT ESTADIA_FECHA_INI,ESTADIA_FECHA_INI, (DATEADD(dd, estadia_cantidad_noches, ESTADIA_FECHA_INI)),ESTADIA_CANTIDAD_NOCHES,ESTADIA_CODIGO 
 	FROM gd_esquema.Maestra 
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta (venta_numero,id_tipo_operacion,venta_fecha,id_sucursal,id_cliente) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta (venta_numero,id_tipo_operacion,venta_fecha,id_sucursal,id_cliente) --0 ROWS AFFECTED
 	SELECT DISTINCT FACTURA_NRO, (CASE WHEN HOTEL_CALLE = NULL THEN 2 ELSE 1 END), FACTURA_FECHA, s.id_sucursal, c.id_cliente
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Sucursal s
@@ -341,7 +359,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta (venta_numero,id_tipo_opera
 GO
 
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Factura (factura_fecha,factura_nro,id_venta) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Factura (factura_fecha,factura_nro,id_venta) --ERROR
 	SELECT DISTINCT FACTURA_FECHA,FACTURA_NRO
 	FROM gd_esquema.Maestra
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
@@ -349,7 +367,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Factura (factura_fecha,factura_nr
 	where FACTURA_NRO != null 
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Pasaje (id_venta,id_pasaje) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Pasaje (id_venta,id_pasaje) --0 ROWS AFFECTED
 	SELECT  v.id_venta, p.id_pasaje
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
@@ -359,7 +377,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Pasaje (id_venta,id_pasaje)
 	where m.FACTURA_NRO != null AND m.PASAJE_CODIGO != null
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra (compra_numero,compra_fecha,id_tipo_operacion,id_aerolinea,id_hotel) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra (compra_numero,compra_fecha,id_tipo_operacion,id_aerolinea,id_hotel) --ERROR
 	SELECT DISTINCT COMPRA_NUMERO, COMPRA_FECHA, (CASE WHEN m.HOTEL_CALLE = NULL THEN 2 ELSE 1 END), a.id_aerolinea, h.id_hotel
 	FROM gd_esquema.Maestra m
 	left join [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea a
@@ -368,7 +386,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra (compra_numero,compra_fech
 	on h.hotel_razon_social = m.EMPRESA_RAZON_SOCIAL AND m.HOTEL_CALLE != null
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje (id_compra,id_pasaje) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje (id_compra,id_pasaje) --0 ROWS AFFECTED
 	SELECT  c.id_compra, p.id_pasaje --distinct soolo para el pasaje?
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra c
@@ -378,7 +396,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje (id_compra,id_pasaj
 	where m.PASAJE_CODIGO != null
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias (id_compra,id_estadia) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias (id_compra,id_estadia) --0 ROWS AFFECTED
 	SELECT  c.id_compra, e.estadia_codigo --distinct solo para la estadia?
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra c
@@ -388,7 +406,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias (id_compra,id_est
 	where m.ESTADIA_CODIGO != null
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Habitacion (id_venta,id_habitacion) 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Habitacion (id_venta,id_habitacion) --0 ROWS AFFECTED
 	SELECT  v.id_venta, h.id_habitacion --distinct solo para la habitacion?
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
