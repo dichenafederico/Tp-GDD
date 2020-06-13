@@ -7,7 +7,7 @@ GO
 -------------------------------------------------------------------------------------------------
 
 GO
-	CREATE SCHEMA [SELECT_BEST_TEAM_FROM_CUARENTENA] --Buscar cuál es el usuario correcto con el que crear el schema
+	CREATE SCHEMA [SELECT_BEST_TEAM_FROM_CUARENTENA]
 GO
 
 
@@ -97,7 +97,7 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje(
 	pasaje_codigo numeric(18, 0) NOT NULL,
 	pasaje_costo numeric(18, 2) NOT NULL,
 	pasaje_precio numeric(18, 2) NOT NULL,
-	pasaje_fecha_compra datetime NULL,
+	pasaje_fecha_compra datetime NULL, -- Nulleable
 	id_avion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion(id_avion),
 	id_butaca integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca(id_butaca)
 	)
@@ -193,8 +193,8 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra(
 	compra_numero numeric(18, 0) NOT NULL,
 	compra_fecha datetime NOT NULL,
 	id_tipo_operacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion(id_tipo_operacion),
-	id_aerolinea integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea(id_aerolinea), --Lo hice nulleable
-	id_hotel integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel(id_hotel) -- Lo hice nulleable
+	id_aerolinea integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea(id_aerolinea), -- Nulleable
+	id_hotel integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel(id_hotel) -- Nulleable
 	)
 GO
 

@@ -1,0 +1,7 @@
+Modelo de Inteligencia de Negocios (BI):
+
+Tabla Pasaje:
+Se decidió que el campo pasaje_fecha_compra admita nulos, ya que se encontraron registros en la tabla maestra que contienen dicho campo en NULL.
+
+Tabla Compra:
+Se decidió que los campos id_aerolinea(FK) y id_hotel(FK) admitan nulos, ya que un registro de compra solo va a tener uno de los dos campos, para indicar a qué aerolinea u hotel pertenece.
