@@ -12,6 +12,8 @@ Tabla Compra:
 ENTREGA 3:
 
 -A las tablas del modelo BI se le agrega un prefijo para diferenciarlas del modelo de datos previo. Ej: BI_CLIENTES.
--La tabla de hechos del modelo BI se llamará BI_OPERACIONES, que incluye todas las compras y ventas realizadas.
+-Se crean 2 tablas de hechos llamadas BI_ESTADIAS y BI_PASAJES.
+-Las tablas BI_TIEMPO, BI_PROVEEDORES y BI_CLIENTES son compartidas por ambas tablas de hechos. El resto de las tablas sí son exclusivas de una u otra tabla de hecho.
+-El campo tipo_operacion que se encuentra en las tablas de hechos se utiliza para saber si es una compra o una venta.
 -El campo tipo_butaca en la tabla BI_BUTACAS define el tipo de pasaje.
 -Los campos de TIPO_HABITACIONES se agregaron en BI_HABITACIONES.

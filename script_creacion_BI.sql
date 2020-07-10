@@ -6,23 +6,30 @@ GO
 -----------------------------------DROP DE TABLES------------------------------------------------
 -------------------------------------------------------------------------------------------------
 
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Operaciones', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Operaciones];
+
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Proveedores];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Tiempo];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Clientes];
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Rutas];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Ciudades];
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Estadias];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Rutas];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aerolineas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Aerolineas];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Aviones];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Butacas];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Habitaciones];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Pasajes];
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Butacas];
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Aviones];
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aerolineas', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Aerolineas];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[BI_Estadias];
+
 
 
 -------------------------------------------------------------------------------------------------
 -----------------------------------CREACIÓN DE TABLAS--------------------------------------------
 -------------------------------------------------------------------------------------------------
+
+CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(
+	cod_proveedor integer IDENTITY PRIMARY KEY,
+	proveedor_razon_social nvarchar(255) NOT NULL
+	)
+GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(
 	cod_tiempo integer IDENTITY PRIMARY KEY,
@@ -42,12 +49,6 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(
 	)
 GO
 
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(
-	cod_proveedor integer IDENTITY PRIMARY KEY,
-	proveedor_razon_social nvarchar(255) NOT NULL
-	)
-GO
-
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(
 	cod_ciudad integer IDENTITY PRIMARY KEY,
 	ciudad_nombre nvarchar(255) NOT NULL
@@ -59,28 +60,6 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(
 	ruta_aerea_codigo numeric(18, 0) NOT NULL,	
 	ruta_aerea_ciu_orig integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad),
 	ruta_aerea_ciu_dest integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad)
-	)
-GO
-
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(
-	cod_habitacion integer IDENTITY PRIMARY KEY,
-	habitacion_numero numeric(18, 0) NOT NULL,
-	habitacion_piso numeric(18, 0) NOT NULL,
-	habitacion_frente nvarchar(50) NOT NULL,
-	habitacion_costo  numeric(18, 2) NOT NULL,
-	habitacion_precio  numeric(18, 2) NOT NULL,
-	tipo_habitacion_codigo numeric(18, 0) NOT NULL,
-	tipo_habitacion_desc nvarchar(50)
-	)
-GO
-
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias(
-	cod_estadia integer IDENTITY PRIMARY KEY,
-	estadia_fecha datetime NOT NULL,
-	estadia_checkin datetime NOT NULL,
-	estadia_checkout datetime NOT NULL,
-	estadia_cantidad_noches  numeric(18, 0) NOT NULL,
-	cod_habitacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(cod_habitacion)
 	)
 GO
 
@@ -104,25 +83,42 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas(
 	)
 GO
 
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(
-	cod_pasaje integer IDENTITY PRIMARY KEY,
-	pasaje_costo numeric(18, 2) NOT NULL,
-	pasaje_precio numeric(18, 2) NOT NULL,
-	pasaje_fecha_compra datetime NULL, -- Nulleable
+CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(
+	cod_habitacion integer IDENTITY PRIMARY KEY,
+	habitacion_numero numeric(18, 0) NOT NULL,
+	habitacion_piso numeric(18, 0) NOT NULL,
+	habitacion_frente nvarchar(50) NOT NULL,
+	habitacion_costo  numeric(18, 2) NOT NULL,
+	habitacion_precio  numeric(18, 2) NOT NULL,
+	tipo_habitacion_codigo numeric(18, 0) NOT NULL,
+	tipo_habitacion_desc nvarchar(50)
 	)
 GO
 
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Operaciones(
+CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias(
 	cod_tiempo integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
-	cod_cliente integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente),
 	cod_proveedor integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(cod_proveedor),
-	cod_pasaje integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(cod_pasaje),
-	cod_ruta integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(cod_ruta),
-	cod_estadia integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias(cod_estadia),
+	cod_cliente integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente),
+	cod_habitacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(cod_habitacion),
 	tipo_operacion integer NOT NULL,
-	precio_promedio numeric(18,2) NOT NULL,
-	cant_items integer NOT NULL,
+	cantidad integer NOT NULL,
+	costo_total numeric(18,2) NOT NULL,
 	ganancia_total numeric(18,2) NOT NULL,
-	PRIMARY KEY (cod_tiempo,cod_cliente,cod_proveedor,cod_pasaje,cod_ruta,cod_estadia)
+	PRIMARY KEY (cod_tiempo,cod_proveedor,cod_cliente,cod_habitacion)
+	)
+GO
+
+CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(
+	cod_tiempo integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
+	cod_proveedor integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(cod_proveedor),
+	cod_cliente integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente),
+	cod_ruta integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(cod_ruta),
+	cod_butaca integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas(cod_butaca),
+	cod_avion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(cod_habitacion),
+	tipo_operacion integer NOT NULL,
+	cantidad integer NOT NULL,
+	costo_total numeric(18,2) NOT NULL,
+	ganancia_total numeric(18,2) NOT NULL,
+	PRIMARY KEY (cod_tiempo,cod_proveedor,cod_cliente,cod_ruta,cod_butaca,cod_avion)
 	)
 GO
