@@ -246,7 +246,6 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Operacion (descripcion) valu
 	('Pasaje')
 GO	
 
-SELECT * FROM gd_esquema.Maestra
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad (ciudad_nombre)
 	SELECT DISTINCT RUTA_AEREA_CIU_ORIG 
