@@ -150,7 +150,46 @@ GO
 
 
 --BI_Tiempo
+GO
+CREATE PROCEDURE seteoDeFechas	
+AS
+BEGIN
+DECLARE @fecha_minima_anio integer
+SET @fecha_minima_anio = 2017
+DECLARE @fecha_minima_mes integer
+SET @fecha_minima_mes = 12
+DECLARE @fecha_maxima_anio integer
+SET @fecha_maxima_anio = 2018
+DECLARE @fecha_maxima_mes integer
+SET @fecha_maxima_mes = 7
 
+
+DECLARE @mes INT = @fecha_minima_mes;
+DECLARE @anio INT = @fecha_minima_anio;
+
+
+	WHILE (1=1)	
+	BEGIN
+		IF((@anio = @fecha_maxima_anio) AND (@mes = @fecha_maxima_mes))
+			BEGIN
+				INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_mes, cod_anio)	VALUES (@mes, @anio)
+				BREAK
+			END
+		ELSE
+			BEGIN
+				INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_mes, cod_anio)	VALUES (@mes, @anio)
+				SET @mes = @mes + 1
+				IF(@mes > 12)
+					BEGIN
+						SET @anio = @anio + 1
+						SET @mes  = 1
+					END
+			END
+	END;
+END
+GO
+
+EXECUTE seteoDeFechas
 
 
 --BI_Clientes
