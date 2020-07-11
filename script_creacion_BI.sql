@@ -215,15 +215,15 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(ruta_aerea_codigo,ruta_a
 GO
 
 
---BI_Aviones  --FALTA TERMINAR EL TERCER CAMPO
-/*
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones (avion_modelo,avion_identificador,id_aerolinea)
-	SELECT DISTINCT avion_modelo,avion_identificador,
-		(SELECT cod_proveedor FROM SELECT_BEST_TEAM_FROM_CUARENTENA.BI_Proveedores)
-	FROM gd_esquema.Maestra m
+--BI_Aviones
+
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones (avion_modelo,avion_identificador,id_proveedor)
+	SELECT DISTINCT av.avion_modelo,av.avion_identificador,
+		(SELECT cod_proveedor FROM SELECT_BEST_TEAM_FROM_CUARENTENA.BI_Proveedores p WHERE p.proveedor_razon_social = ae.aerolinea_razon_social)
+	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Avion av
+	JOIN SELECT_BEST_TEAM_FROM_CUARENTENA.Aerolinea ae ON av.id_aerolinea = ae.id_aerolinea
 	WHERE AVION_MODELO IS NOT NULL AND AVION_IDENTIFICADOR IS NOT NULL
 GO
-*/
 
 
 --BI_Butacas
