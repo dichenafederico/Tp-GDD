@@ -17,3 +17,6 @@ ENTREGA 3:
 -El campo tipo_operacion que se encuentra en las tablas de hechos se utiliza para saber si es una compra o una venta.
 -El campo tipo_butaca en la tabla BI_BUTACAS define el tipo de pasaje.
 -Los campos de TIPO_HABITACIONES se agregaron en BI_HABITACIONES.
+-En la tabla de hechos BI_ESTADIAS, el cod_proveedor y cod_cliente no van a ser parte de la PK, ya que se necesita que uno de los dos campos sea nulleable, para poder diferenciar si la estadía es comprada a un proveedor o vendida a un cliente, y poder hacer el join correspondiente.
+-Se realizó una Función para calcular la cantidad de camas según el tipo de habitación. Consideramos que (Base simple = 1 cama, Base doble = 2 camas, Base triple = 3 camas, Base cuárdruple = 4 camas, King = 1 cama).
+-Se agregó en la tabla de hecho BI_ESTADIAS un campo llamado estadia_vendida del tipo boolean. Esto lo utilizaremos al momento de realizar los inserts de ventas de estadías. Cuando haya una venta de una estadía, se hará un update del registro de la tabla de hecho y se lo marcará como vendido. Decidimos esto porque otra manera de hacerlo es que haya un registro de compra y otro de venta, por lo que habría el doble de registros.

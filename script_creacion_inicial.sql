@@ -15,7 +15,7 @@ GO
 -----------------------------------DROP DE TABLES------------------------------------------------
 -------------------------------------------------------------------------------------------------
 
-IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Habitacion', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Venta_Habitacion];
+IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Estadia', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Venta_Estadia];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Compra_Estadias];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Compra_Pasaje];
 IF OBJECT_ID('[SELECT_BEST_TEAM_FROM_CUARENTENA].Compra', 'U') IS NOT NULL DROP TABLE SELECT_BEST_TEAM_FROM_CUARENTENA.[Compra];
@@ -229,10 +229,11 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias(
 	)
 GO
 
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Habitacion(
+
+CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Estadia(
 	id_venta integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta(id_venta),
-	id_habitacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion(id_habitacion),
-	PRIMARY KEY (id_venta,id_habitacion)
+	id_estadia integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia(id_estadia),
+	PRIMARY KEY (id_venta,id_estadia)
 	)
 GO
 
@@ -351,6 +352,18 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia (estadia_fecha,estadia_ch
 	where ESTADIA_CODIGO IS NOT NULL
 GO
 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia_Habitacion(id_habitacion,id_estadia) 
+	SELECT DISTINCT h.id_habitacion, e.id_estadia 
+	FROM gd_esquema.Maestra m
+	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia e
+	on e.estadia_codigo = m.ESTADIA_CODIGO 
+	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion h
+	on h.habitacion_frente = m.HABITACION_FRENTE AND h.habitacion_numero = m.HABITACION_NUMERO AND h.habitacion_piso = m.HABITACION_PISO
+	JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel hot
+	on h.id_hotel = hot.id_hotel
+	where m.ESTADIA_CODIGO IS NOT NULL
+GO
+
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta (venta_numero,id_tipo_operacion,venta_fecha,id_sucursal,id_cliente)
 	SELECT DISTINCT FACTURA_NRO, (CASE WHEN HOTEL_CALLE IS NULL THEN 2 ELSE 1 END), FACTURA_FECHA, s.id_sucursal, c.id_cliente
 	FROM gd_esquema.Maestra m
@@ -409,14 +422,12 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias (id_compra,id_est
 	where m.ESTADIA_CODIGO IS NOT NULL
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Habitacion (id_venta,id_habitacion)
-	SELECT  v.id_venta, h.id_habitacion
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Estadia (id_venta,id_estadia)
+	SELECT  v.id_venta, e.id_estadia
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
 	on v.venta_numero = m.FACTURA_NRO 
-	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion h
-	on h.habitacion_numero = m.HABITACION_NUMERO 
-	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Hotel hot
-	on hot.id_hotel = h.id_hotel  
-	where m.FACTURA_NRO IS NOT NULL AND m.HOTEL_CALLE IS NOT NULL
+	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia e
+	on e.estadia_codigo = m.ESTADIA_CODIGO 	
+	where m.FACTURA_NRO IS NOT NULL AND m.ESTADIA_CODIGO IS NOT NULL
 GO
