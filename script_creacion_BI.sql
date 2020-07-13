@@ -342,7 +342,7 @@ GO
 		WHERE c.id_tipo_operacion = 2 AND c.id_aerolinea IS NOT NULL	
 		
 		
-		--UPDATE PARA MARCAR LAS ESTADÍAS VENDIDAS
+		--UPDATE PARA MARCAR LOS PASAJES VENDIDOS
 		UPDATE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes 
 		SET pasaje_vendido = 1, cod_cliente = bic.cod_cliente, cod_tiempo_venta = t.cod_tiempo
 		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
