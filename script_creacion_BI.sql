@@ -51,30 +51,34 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(
-	cod_ciudad integer IDENTITY PRIMARY KEY,
-	ciudad_nombre nvarchar(255) NOT NULL
+	cod_ciudad integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Ciudad(id_ciudad),
+	ciudad_nombre nvarchar(255) NOT NULL,
+	Primary key(cod_ciudad)
 	)
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(
-	cod_ruta integer IDENTITY PRIMARY KEY,
+	cod_ruta integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Ruta_Aerea(id_ruta_aerea),
 	ruta_aerea_codigo numeric(18, 0) NOT NULL,	
 	ruta_aerea_ciu_orig integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad),
-	ruta_aerea_ciu_dest integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad)
+	ruta_aerea_ciu_dest integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad),
+	Primary key(cod_ruta)
 	)
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones(
-	cod_avion integer IDENTITY PRIMARY KEY,
+	cod_avion integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion(id_avion),
 	avion_modelo nvarchar(50) NOT NULL,
 	avion_identificador nvarchar(50) NOT NULL,
-	id_proveedor integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_proveedores(cod_proveedor)
+	id_proveedor integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_proveedores(cod_proveedor),
+	Primary key(cod_avion)
 	)
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas(
-	cod_butaca integer IDENTITY PRIMARY KEY,
-	butaca_tipo nvarchar(255) NOT NULL
+	cod_butaca integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca(id_butaca),
+	butaca_tipo nvarchar(255) NOT NULL,
+	Primary key(cod_butaca)
 	)
 GO
 
@@ -219,16 +223,16 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente, cliente_
 GO
 
 --BI_Ciudades
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(ciudad_nombre)
-	SELECT DISTINCT ciudad_nombre 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Ciudades(cod_ciudad,ciudad_nombre)
+	SELECT DISTINCT id_ciudad, ciudad_nombre 
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Ciudad 
 	WHERE ciudad_nombre IS NOT NULL
 GO
 
 
 --BI_Rutas
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(ruta_aerea_codigo,ruta_aerea_ciu_orig,ruta_aerea_ciu_dest)
-	SELECT DISTINCT ruta_aerea_codigo, ruta_aerea_ciu_orig, ruta_aerea_ciu_dest
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(cod_ruta,ruta_aerea_codigo,ruta_aerea_ciu_orig,ruta_aerea_ciu_dest)
+	SELECT DISTINCT id_ruta_aerea,ruta_aerea_codigo, ruta_aerea_ciu_orig, ruta_aerea_ciu_dest
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Ruta_Aerea
 	WHERE RUTA_AEREA_CODIGO IS NOT NULL
 GO
@@ -236,8 +240,8 @@ GO
 
 --BI_Aviones
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones (avion_modelo,avion_identificador,id_proveedor)
-	SELECT DISTINCT av.avion_modelo,av.avion_identificador,
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones (cod_avion,avion_modelo,avion_identificador,id_proveedor)
+	SELECT DISTINCT id_avion,av.avion_modelo,av.avion_identificador,
 		(SELECT cod_proveedor FROM SELECT_BEST_TEAM_FROM_CUARENTENA.BI_Proveedores p WHERE p.proveedor_razon_social = ae.aerolinea_razon_social)
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Avion av
 	JOIN SELECT_BEST_TEAM_FROM_CUARENTENA.Aerolinea ae ON av.id_aerolinea = ae.id_aerolinea
@@ -246,8 +250,8 @@ GO
 
 
 --BI_Butacas
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas (butaca_tipo)
-	SELECT DISTINCT butaca_tipo
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas (cod_butaca,butaca_tipo)
+	SELECT DISTINCT id_butaca,butaca_tipo
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Butaca
 	WHERE butaca_tipo IS NOT NULL
 GO
@@ -269,7 +273,6 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tipo_Habitaciones (cod_tipo_ha
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Tipo_Habitacion
 	WHERE tipo_habitacion_codigo IS NOT NULL
 GO
-
 
 --BI_Estadias
  INSERT INTO  [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias (cod_estadia,cod_tiempo_compra, cod_tiempo_venta, cod_tiempo_estadia ,cod_proveedor ,cod_cliente ,cod_habitacion ,cod_tipo_habitacion, tipo_operacion,cantidad_noches,costo_total ,ganancia_total ,cantidad_camas)
@@ -311,4 +314,6 @@ GO
 		on bic.cod_cliente = v.id_cliente
 		WHERE v.id_tipo_operacion = 1 AND bie.cod_estadia = ve.id_estadia
 
+
+--BI_Pasajes
 
