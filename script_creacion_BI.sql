@@ -39,13 +39,14 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(
-	cod_cliente integer IDENTITY PRIMARY KEY,
+	cod_cliente integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Cliente(id_cliente),
 	cliente_apellido nvarchar(255) NOT NULL,
 	cliente_nombre nvarchar(255) NOT NULL,
 	cliente_dni numeric(18, 0) NOT NULL,
 	cliente_fecha_nac datetime NOT NULL,
 	cliente_mail nvarchar(255) NOT NULL,
-	cliente_telefono integer NOT NULL
+	cliente_telefono integer NOT NULL,
+	Primary key(cod_cliente)
 	)
 GO
 
@@ -63,14 +64,6 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Rutas(
 	)
 GO
 
-/*
-CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aerolineas(
-	cod_aerolinea integer IDENTITY PRIMARY KEY,
-	aerolinea_razon_social nvarchar(255) NOT NULL
-	)
-GO
-*/
-
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Aviones(
 	cod_avion integer IDENTITY PRIMARY KEY,
 	avion_modelo nvarchar(50) NOT NULL,
@@ -86,33 +79,40 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Butacas(
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(
-	cod_habitacion integer IDENTITY PRIMARY KEY,
+	cod_habitacion integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion(id_habitacion),
 	habitacion_numero numeric(18, 0) NOT NULL,
 	habitacion_piso numeric(18, 0) NOT NULL,
 	habitacion_frente nvarchar(50) NOT NULL,
 	habitacion_costo  numeric(18, 2) NOT NULL,
 	habitacion_precio  numeric(18, 2) NOT NULL
+	Primary key(cod_habitacion)
 	)
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tipo_Habitaciones(
-	cod_tipo_habitacion integer IDENTITY PRIMARY KEY,
+	cod_tipo_habitacion integer not null FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion(id_tipo_habitacion),
 	tipo_habitacion_codigo numeric(18, 0) NOT NULL,
 	tipo_habitacion_desc nvarchar(50) NOT NULL
+	Primary key(cod_tipo_habitacion)
 	)
 GO
 
 CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias(
-	cod_tiempo integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
-	cod_proveedor integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(cod_proveedor),
-	cod_cliente integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente),
+	cod_BI_estadia  integer IDENTITY PRIMARY KEY,
+    cod_estadia integer NOT NULL,
+	cod_tiempo_compra integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
+	cod_tiempo_venta integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
+	cod_tiempo_estadia integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo(cod_tiempo),
+	cod_proveedor integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Proveedores(cod_proveedor),
+	cod_cliente integer NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente),
 	cod_habitacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones(cod_habitacion),
+	cod_tipo_habitacion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tipo_Habitaciones(cod_tipo_habitacion),
 	tipo_operacion integer NOT NULL,
-	cantidad integer NOT NULL,
+	cantidad_noches integer NOT NULL,
 	costo_total numeric(18,2) NOT NULL,
 	ganancia_total numeric(18,2) NOT NULL,
 	cantidad_camas integer NOT NULL,
-	PRIMARY KEY (cod_tiempo,cod_proveedor,cod_cliente,cod_habitacion)
+	estadia_vendida bit NULL
 	)
 GO
 
@@ -131,9 +131,28 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(
 	)
 GO
 
+--------------------------------------------------------------
+-----------FUNCIÓN PARA OBTENER CANTIDAD DE CAMAS-------------
+--------------------------------------------------------------
+
+CREATE FUNCTION fx_obtenerCantidadDeCamas (@tipo_habitacion int)
+RETURNS INT
+AS
+BEGIN 
+	declare @retorno int
+	SELECT @retorno = CASE WHEN t.tipo_habitacion_desc like 'Base Simple' OR t.tipo_habitacion_desc like 'King'  THEN 1 
+	WHEN t.tipo_habitacion_desc like 'Base Doble' THEN 2
+	WHEN t.tipo_habitacion_desc like 'Base Triple' THEN 3 
+	WHEN  t.tipo_habitacion_desc like 'Base Cuadruple' THEN 4 END
+	FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion t
+	WHERE t.id_tipo_habitacion = @tipo_habitacion
+	RETURN @retorno
+END
+GO
+
 
 --------------------------------------------------------------
--------------------Migración de los datos---------------------
+-------------------MIGRACIÓN DE DATOS-------------------------
 --------------------------------------------------------------
 
 --BI_Proveedores
@@ -193,8 +212,8 @@ EXECUTE seteoDeFechas
 
 
 --BI_Clientes
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cliente_apellido,cliente_nombre,cliente_dni,cliente_fecha_nac,cliente_mail,cliente_telefono)
-	SELECT DISTINCT cliente_apellido,cliente_nombre,cliente_dni,cliente_fecha_nac,cliente_mail,cliente_telefono
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes(cod_cliente, cliente_apellido,cliente_nombre,cliente_dni,cliente_fecha_nac,cliente_mail,cliente_telefono)
+	SELECT DISTINCT id_cliente, cliente_apellido,cliente_nombre,cliente_dni,cliente_fecha_nac,cliente_mail,cliente_telefono
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Cliente
 	WHERE cliente_dni IS NOT NULL
 GO
@@ -236,8 +255,8 @@ GO
 
 
 --BI_Habitaciones
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones (habitacion_numero,habitacion_piso,habitacion_frente,habitacion_costo,habitacion_precio)
-	SELECT DISTINCT habitacion_numero,habitacion_piso,habitacion_frente,habitacion_costo,habitacion_precio
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones (cod_habitacion,habitacion_numero,habitacion_piso,habitacion_frente,habitacion_costo,habitacion_precio)
+	SELECT DISTINCT id_habitacion, habitacion_numero,habitacion_piso,habitacion_frente,habitacion_costo,habitacion_precio
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Habitacion
 	where habitacion_numero IS NOT NULL
 GO
@@ -245,16 +264,51 @@ GO
 
 
 --BI_Tipo_Habitaciones
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tipo_Habitaciones (tipo_habitacion_codigo,tipo_habitacion_desc)
-	SELECT DISTINCT tipo_habitacion_codigo,tipo_habitacion_desc
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tipo_Habitaciones (cod_tipo_habitacion,tipo_habitacion_codigo,tipo_habitacion_desc)
+	SELECT DISTINCT id_tipo_habitacion, tipo_habitacion_codigo,tipo_habitacion_desc
 	FROM SELECT_BEST_TEAM_FROM_CUARENTENA.Tipo_Habitacion
 	WHERE tipo_habitacion_codigo IS NOT NULL
 GO
 
 
 --BI_Estadias
+ INSERT INTO  [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias (cod_estadia,cod_tiempo_compra, cod_tiempo_venta, cod_tiempo_estadia ,cod_proveedor ,cod_cliente ,cod_habitacion ,cod_tipo_habitacion, tipo_operacion,cantidad_noches,costo_total ,ganancia_total ,cantidad_camas)
+		SELECT DISTINCT eh.id_estadia, tCompra.cod_tiempo, null,  t.cod_tiempo , c.id_hotel, null, bih.cod_habitacion, h.id_tipo_habitacion, 1, e.estadia_cantidad_noches,
+		 (h.habitacion_costo * e.estadia_cantidad_noches), 
+		 (h.habitacion_precio * e.estadia_cantidad_noches - (h.habitacion_costo * e.estadia_cantidad_noches)),
+		 dbo.fx_obtenerCantidadDeCamas(h.id_tipo_habitacion)		 
+		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra c
+		JOIN  [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias ce
+		on c.id_compra = ce.id_compra
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia e
+		on ce.id_estadia = e.id_estadia
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia_Habitacion eh
+		on e.id_estadia = eh.id_estadia
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion h
+		on eh.id_habitacion = h.id_habitacion
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones bih
+		on h.id_habitacion = bih.cod_habitacion
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion th
+		on h.id_tipo_habitacion = th.id_tipo_habitacion
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo t
+		on t.cod_anio = YEAR(e.estadia_fecha) AND t.cod_mes = MONTH(e.estadia_fecha)
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo tCompra
+		on t.cod_anio = YEAR(c.compra_fecha) AND t.cod_mes = MONTH(c.compra_fecha)
+		WHERE c.id_tipo_operacion = 1 AND c.id_hotel IS NOT NULL	
 
+		select * from  [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias
 
---BI_Pasajes
+		UPDATE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias 
+		SET estadia_vendida = 1, cod_cliente = bic.cod_cliente, cod_tiempo_venta = t.cod_tiempo
+		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Estadia ve
+		on v.id_venta = ve.id_venta
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias bie
+		on ve.id_estadia = bie.cod_estadia
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo t
+		on t.cod_anio = YEAR(v.venta_fecha) AND t.cod_mes = MONTH(v.venta_fecha)
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes bic
+		on bic.cod_cliente = v.id_cliente
+		WHERE v.id_tipo_operacion = 1 AND bie.cod_estadia = ve.id_estadia
 
 

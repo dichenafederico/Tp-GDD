@@ -14,7 +14,7 @@ ENTREGA 3:
 -A las tablas del modelo BI se le agrega un prefijo para diferenciarlas del modelo de datos previo. Ej: BI_CLIENTES.
 -Se crean 2 tablas de hechos llamadas BI_ESTADIAS y BI_PASAJES.
 -Las tablas BI_TIEMPO, BI_PROVEEDORES y BI_CLIENTES son compartidas por ambas tablas de hechos. El resto de las tablas sí son exclusivas de una u otra tabla de hecho.
--El campo tipo_operacion que se encuentra en las tablas de hechos se utiliza para saber si es una compra o una venta.
+-(REVISAR) El campo tipo_operacion que se encuentra en las tablas de hechos se utiliza para saber si es una compra o una venta.
 -El campo tipo_butaca en la tabla BI_BUTACAS define el tipo de pasaje.
 -Los campos de TIPO_HABITACIONES se agregaron en BI_HABITACIONES.
 -En la tabla de hechos BI_ESTADIAS, el cod_proveedor y cod_cliente no van a ser parte de la PK, ya que se necesita que uno de los dos campos sea nulleable, para poder diferenciar si la estadía es comprada a un proveedor o vendida a un cliente, y poder hacer el join correspondiente.
