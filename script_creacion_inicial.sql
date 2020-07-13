@@ -100,6 +100,7 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje(
 	pasaje_precio numeric(18, 2) NOT NULL,
 	pasaje_fecha_compra datetime NULL, -- Nulleable
 	id_avion integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion(id_avion),
+	id_vuelo integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo(id_vuelo),
 	id_butaca integer NOT NULL FOREIGN KEY REFERENCES [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca(id_butaca)
 	)
 GO
@@ -296,15 +297,18 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca (butaca_numero,butaca_tipo
 	ORDER BY BUTACA_NUMERO
 GO
 
-INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje (pasaje_codigo,pasaje_costo,pasaje_precio,pasaje_fecha_compra,id_avion,id_butaca) 
-	SELECT DISTINCT m.PASAJE_CODIGO,m.PASAJE_COSTO,m.PASAJE_PRECIO,m.PASAJE_FECHA_COMPRA, a.id_avion, b.id_butaca 
+INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje (pasaje_codigo,pasaje_costo,pasaje_precio,pasaje_fecha_compra,id_avion,id_vuelo,id_butaca) 
+	SELECT DISTINCT m.PASAJE_CODIGO,m.PASAJE_COSTO,m.PASAJE_PRECIO,m.PASAJE_FECHA_COMPRA, a.id_avion, v.id_vuelo, b.id_butaca 
 	FROM gd_esquema.Maestra m
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion a
 	on m.AVION_IDENTIFICADOR = a.avion_identificador 
 	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca b
-	on b.butaca_numero = m.BUTACA_NUMERO	
+	on b.butaca_numero = m.BUTACA_NUMERO
+	join [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo v
+	on v.vuelo_codigo = m.VUELO_CODIGO 
 	where m.RUTA_AEREA_CODIGO IS NOT NULL
 GO
+
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca_Avion (id_butaca, id_avion)
 	SELECT DISTINCT p.id_butaca,p.id_avion	

@@ -135,6 +135,7 @@ CREATE TABLE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(
 	cantidad_pasajes integer NOT NULL,
 	costo_total numeric(18,2) NOT NULL,
 	ganancia_total numeric(18,2) NOT NULL,
+	pasaje_vendido bit NULL
 	)
 GO
 
@@ -319,40 +320,39 @@ GO
 
 --BI_Pasajes
  INSERT INTO  [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(cod_pasaje,cod_tiempo_compra, cod_tiempo_venta, cod_tiempo_pasaje ,cod_proveedor ,cod_cliente ,cod_ruta ,cod_butaca, cod_avion, tipo_operacion,cantidad_pasajes,costo_total ,ganancia_total)
-		SELECT DISTINCT eh.id_estadia, tCompra.cod_tiempo, null,  t.cod_tiempo , c.id_hotel, null, bih.cod_habitacion, h.id_tipo_habitacion, 1, e.estadia_cantidad_noches,
-		 (h.habitacion_costo * e.estadia_cantidad_noches), 
-		 (h.habitacion_precio * e.estadia_cantidad_noches - (h.habitacion_costo * e.estadia_cantidad_noches)),
-		 dbo.fx_obtenerCantidadDeCamas(h.id_tipo_habitacion)		 
+		SELECT DISTINCT p.pasaje_codigo, tCompra.cod_tiempo, null,  t.cod_tiempo , c.id_aerolinea, null, r.id_ruta_aerea, b.id_butaca, a.id_avion,1,
+		1, 1000, 2000
 		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra c
-		JOIN  [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Estadias ce
-		on c.id_compra = ce.id_compra
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia e
-		on ce.id_estadia = e.id_estadia
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Estadia_Habitacion eh
-		on e.id_estadia = eh.id_estadia
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Habitacion h
-		on eh.id_habitacion = h.id_habitacion
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Habitaciones bih
-		on h.id_habitacion = bih.cod_habitacion
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Tipo_Habitacion th
-		on h.id_tipo_habitacion = th.id_tipo_habitacion
+		JOIN  [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje cp
+		on c.id_compra = cp.id_compra
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Pasaje p
+		on cp.id_pasaje = p.id_pasaje
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Vuelo v
+		on v.id_vuelo = p.id_vuelo
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Ruta_Aerea r
+		on v.id_ruta_aerea = r.id_ruta_aerea
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Avion a
+		on v.id_avion = a.id_avion
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Butaca b
+		on b.id_butaca = p.id_butaca
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo t
-		on t.cod_anio = YEAR(e.estadia_fecha) AND t.cod_mes = MONTH(e.estadia_fecha)
+		on t.cod_anio = YEAR(p.pasaje_fecha_compra) AND t.cod_mes = MONTH(p.pasaje_fecha_compra)
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo tCompra
 		on t.cod_anio = YEAR(c.compra_fecha) AND t.cod_mes = MONTH(c.compra_fecha)
-		WHERE c.id_tipo_operacion = 1 AND c.id_hotel IS NOT NULL	
-
+		WHERE c.id_tipo_operacion = 1 AND c.id_aerolinea IS NOT NULL	
+		
+		SELECT * FROM SELECT_BEST_TEAM_FROM_CUARENTENA.BI_Pasajes
 		
 		--UPDATE PARA MARCAR LAS ESTADÍAS VENDIDAS
-		UPDATE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias 
-		SET estadia_vendida = 1, cod_cliente = bic.cod_cliente, cod_tiempo_venta = t.cod_tiempo
+		UPDATE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes 
+		SET pasaje_vendido = 1, cod_cliente = bic.cod_cliente, cod_tiempo_venta = t.cod_tiempo
 		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta v
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Estadia ve
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Pasaje ve
 		on v.id_venta = ve.id_venta
-		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Estadias bie
-		on ve.id_estadia = bie.cod_estadia
+		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes bip
+		on ve.id_pasaje = bip.cod_pasaje
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo t
 		on t.cod_anio = YEAR(v.venta_fecha) AND t.cod_mes = MONTH(v.venta_fecha)
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes bic
 		on bic.cod_cliente = v.id_cliente
-		WHERE v.id_tipo_operacion = 1 AND bie.cod_estadia = ve.id_estadia
+		WHERE v.id_tipo_operacion = 1 AND bip.cod_pasaje = ve.id_pasaje
