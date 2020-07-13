@@ -320,8 +320,8 @@ GO
 
 --BI_Pasajes
  INSERT INTO  [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes(cod_pasaje,cod_tiempo_compra, cod_tiempo_venta, cod_tiempo_pasaje ,cod_proveedor ,cod_cliente ,cod_ruta ,cod_butaca, cod_avion, tipo_operacion,cantidad_pasajes,costo_total ,ganancia_total)
-		SELECT DISTINCT p.pasaje_codigo, tCompra.cod_tiempo, null,  t.cod_tiempo , c.id_aerolinea, null, r.id_ruta_aerea, b.id_butaca, a.id_avion,1,
-		1, 1000, 2000
+		SELECT DISTINCT p.id_pasaje, tCompra.cod_tiempo, null,  t.cod_tiempo , c.id_aerolinea, null, r.id_ruta_aerea, b.id_butaca, a.id_avion,1,
+		1, p.pasaje_costo, (p.pasaje_precio - p.pasaje_costo)
 		FROM [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra c
 		JOIN  [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra_Pasaje cp
 		on c.id_compra = cp.id_compra
@@ -339,9 +339,8 @@ GO
 		on t.cod_anio = YEAR(p.pasaje_fecha_compra) AND t.cod_mes = MONTH(p.pasaje_fecha_compra)
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Tiempo tCompra
 		on t.cod_anio = YEAR(c.compra_fecha) AND t.cod_mes = MONTH(c.compra_fecha)
-		WHERE c.id_tipo_operacion = 1 AND c.id_aerolinea IS NOT NULL	
+		WHERE c.id_tipo_operacion = 2 AND c.id_aerolinea IS NOT NULL	
 		
-		SELECT * FROM SELECT_BEST_TEAM_FROM_CUARENTENA.BI_Pasajes
 		
 		--UPDATE PARA MARCAR LAS ESTADÍAS VENDIDAS
 		UPDATE [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Pasajes 
@@ -355,4 +354,4 @@ GO
 		on t.cod_anio = YEAR(v.venta_fecha) AND t.cod_mes = MONTH(v.venta_fecha)
 		JOIN [SELECT_BEST_TEAM_FROM_CUARENTENA].BI_Clientes bic
 		on bic.cod_cliente = v.id_cliente
-		WHERE v.id_tipo_operacion = 1 AND bip.cod_pasaje = ve.id_pasaje
+		WHERE v.id_tipo_operacion = 2 AND bip.cod_pasaje = ve.id_pasaje

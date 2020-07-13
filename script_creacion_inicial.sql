@@ -387,7 +387,7 @@ INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Venta_Pasaje (id_venta,id_pasaje)
 GO
 
 INSERT INTO [SELECT_BEST_TEAM_FROM_CUARENTENA].Compra (compra_numero,compra_fecha,id_tipo_operacion,id_aerolinea,id_hotel)
-	SELECT DISTINCT COMPRA_NUMERO, COMPRA_FECHA, (CASE WHEN m.HOTEL_CALLE = NULL THEN 2 ELSE 1 END), a.id_aerolinea, h.id_hotel
+	SELECT DISTINCT COMPRA_NUMERO, COMPRA_FECHA, (CASE WHEN m.HOTEL_CALLE IS NULL THEN 2 ELSE 1 END), a.id_aerolinea, h.id_hotel
 	FROM gd_esquema.Maestra m
 	left join [SELECT_BEST_TEAM_FROM_CUARENTENA].Aerolinea a
 	on a.aerolinea_razon_social = m.EMPRESA_RAZON_SOCIAL AND m.HOTEL_CALLE IS NULL 
